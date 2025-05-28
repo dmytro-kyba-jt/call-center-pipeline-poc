@@ -4,9 +4,13 @@ import com.jobandtalent.callcenter.pipeline.domain.CommunicationRequest
 import com.jobandtalent.callcenter.pipeline.domain.CommunicationType
 import com.jobandtalent.callcenter.pipeline.domain.Priority
 import com.jobandtalent.callcenter.pipeline.service.CommunicationService
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
+@Validated
 @RestController
 @RequestMapping("/api/communications")
 class CommunicationController(
@@ -15,7 +19,7 @@ class CommunicationController(
 
     @PostMapping
     suspend fun createCommunicationRequest(
-        @RequestBody request: CreateCommunicationRequest
+        @Valid @RequestBody request: CreateCommunicationRequest
     ): ResponseEntity<*> {
         val communicationRequest = CommunicationRequest(
             workerId = request.workerId,
@@ -51,9 +55,16 @@ class CommunicationController(
 }
 
 data class CreateCommunicationRequest(
+    @field:NotBlank
     val workerId: String,
+
     val communicationType: CommunicationType,
+
     val payload: Map<String, Any>,
+
+    @field:NotBlank
     val useCase: String,
+
     val priority: Priority = Priority.NORMAL
 )
+
