@@ -1,3 +1,5 @@
+package com.jobandtalent.callcenter.pipeline.pipeline.steps
+
 import com.jobandtalent.callcenter.pipeline.domain.CommunicationRequest
 import com.jobandtalent.callcenter.pipeline.domain.PipelineResult
 import com.jobandtalent.callcenter.pipeline.domain.RequestStatus

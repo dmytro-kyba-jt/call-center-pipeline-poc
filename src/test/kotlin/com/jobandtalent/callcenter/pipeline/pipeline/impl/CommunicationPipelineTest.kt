@@ -1,11 +1,11 @@
 package com.jobandtalent.callcenter.pipeline.pipeline.impl
 
-import AcceptanceRulesStep
 import com.jobandtalent.callcenter.pipeline.domain.CommunicationRequest
 import com.jobandtalent.callcenter.pipeline.domain.CommunicationType
 import com.jobandtalent.callcenter.pipeline.domain.RequestStatus
 import com.jobandtalent.callcenter.pipeline.pipeline.CommunicationPipelineExecutor
 import com.jobandtalent.callcenter.pipeline.pipeline.PipelineStepRegistry
+import com.jobandtalent.callcenter.pipeline.pipeline.steps.AcceptanceRulesStep
 import com.jobandtalent.callcenter.pipeline.pipeline.steps.CommunicationProviderStep
 import com.jobandtalent.callcenter.pipeline.pipeline.steps.DataStorageStep
 import com.jobandtalent.callcenter.pipeline.pipeline.steps.ExclusionRulesStep

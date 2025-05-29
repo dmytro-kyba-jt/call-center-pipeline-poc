@@ -55,14 +55,14 @@ class CommunicationController(
 }
 
 data class CreateCommunicationRequest(
-    @field:NotBlank
+//    @field:NotBlank(message = "Worker ID must not be blank")
     val workerId: String,
 
     val communicationType: CommunicationType,
 
     val payload: Map<String, Any>,
 
-    @field:NotBlank
+//    @field:NotBlank(message = "Use case must not be blank")
     val useCase: String,
 
     val priority: Priority = Priority.NORMAL
