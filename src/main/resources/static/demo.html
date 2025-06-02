@@ -106,6 +106,11 @@
             transform: none;
         }
 
+        .debug-btn {
+            background: rgba(255,255,255,0.1) !important;
+            font-size: 0.9em !important;
+        }
+
         .config-status {
             background: rgba(255,255,255,0.1);
             border-radius: 10px;
@@ -277,6 +282,13 @@
             box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
         }
 
+        .batch-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         .results-container {
             background: #f8f9fa;
             border-radius: 10px;
@@ -368,6 +380,24 @@
             background: rgba(255,255,255,0.1);
         }
 
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #f5c6cb;
+            margin: 10px 0;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #c3e6cb;
+            margin: 10px 0;
+        }
+
         @media (max-width: 768px) {
             .scenarios-grid {
                 grid-template-columns: 1fr;
@@ -379,6 +409,22 @@
 
             .comparison-container {
                 grid-template-columns: 1fr;
+            }
+
+            .batch-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .batch-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .result-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
             }
         }
     </style>
@@ -417,6 +463,12 @@
                     </button>
                     <button class="live-demo-btn" onclick="checkLiveDemoStatus()">
                         📊 Check Status
+                    </button>
+                    <button class="live-demo-btn debug-btn" onclick="debugConfigs()">
+                        🐛 Debug Configs
+                    </button>
+                    <button class="live-demo-btn debug-btn" onclick="clearLiveDemo()">
+                        🗑️ Clear Demo
                     </button>
                 </div>
 
@@ -481,6 +533,8 @@
     const API_BASE = 'http://localhost:8080/api';
     let scenarios = [];
     let liveDemoResults = [];
+    let originalConfig = null;
+    let modifiedConfig = null;
 
     // Load scenarios on page load
     window.onload = async function() {
@@ -499,7 +553,7 @@
         } catch (error) {
             console.error('Failed to load scenarios:', error);
             document.getElementById('scenarios-container').innerHTML =
-                `<div class="loading">❌ Failed to load scenarios: ${error.message}</div>`;
+                `<div class="error-message">❌ Failed to load scenarios: ${error.message}<br><br><strong>Make sure:</strong><ul><li>Server is running on localhost:8080</li><li>DemoController is properly configured</li><li>CORS is enabled (if needed)</li></ul></div>`;
         }
     }
 
@@ -550,16 +604,33 @@
         btn.textContent = '⏳ Setting up...';
 
         try {
+            // Clear any existing configuration first
+            await fetch(`${API_BASE}/demo/debug/clear-live-demo`, { method: 'DELETE' });
+
             const response = await fetch(`${API_BASE}/demo/setup-live-demo`, { method: 'POST' });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
             const result = await response.json();
+            originalConfig = result;
 
+            // Reset state
+            liveDemoResults = [];
+            modifiedConfig = null;
+            hideComparisonView();
+
+            // Enable next step
             document.getElementById('run-live-btn').disabled = false;
-            showLiveDemoMessage(result.message, 'success');
+
+            // Disable other buttons until appropriate
+            document.getElementById('modify-btn').disabled = true;
+            document.getElementById('run-modified-btn').disabled = true;
+            document.getElementById('restore-btn').disabled = true;
+
+            showLiveDemoMessage(result.message + ` (${result.totalSteps} steps created)`, 'success');
             await checkLiveDemoStatus();
 
         } catch (error) {
+            console.error('Setup failed:', error);
             showLiveDemoMessage(`Setup failed: ${error.message}`, 'error');
         } finally {
             btn.disabled = false;
@@ -577,7 +648,7 @@
 
         try {
             const response = await fetch(`${API_BASE}/demo/run/live-config-demo`, { method: 'POST' });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
             const result = await response.json();
             liveDemoResults.push(result);
@@ -589,6 +660,7 @@
             }
 
         } catch (error) {
+            console.error('Run failed:', error);
             displayError(`Live demo run failed: ${error.message}`);
         } finally {
             btn.disabled = false;
@@ -603,15 +675,23 @@
 
         try {
             const response = await fetch(`${API_BASE}/demo/modify-live-demo`, { method: 'POST' });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+            }
 
             const result = await response.json();
+            modifiedConfig = result;
 
             showComparisonView(result);
             document.getElementById('run-modified-btn').disabled = false;
             document.getElementById('restore-btn').disabled = false;
 
+            showLiveDemoMessage(result.message + ` (${result.oldSteps} → ${result.newSteps} steps)`, 'success');
+            await checkLiveDemoStatus();
+
         } catch (error) {
+            console.error('Modification failed:', error);
             showLiveDemoMessage(`Modification failed: ${error.message}`, 'error');
         } finally {
             btn.disabled = false;
@@ -626,14 +706,39 @@
 
         try {
             const response = await fetch(`${API_BASE}/demo/restore-live-demo`, { method: 'POST' });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+            }
 
             const result = await response.json();
-            showLiveDemoMessage(result.message, 'success');
-            await checkLiveDemoStatus();
+
+            // Clear modified state
+            modifiedConfig = null;
             hideComparisonView();
 
+            // Show restore success with details
+            const changesHtml = result.changes ? result.changes.map(change => `<li style="margin: 3px 0;">${change}</li>`).join('') : '';
+            showLiveDemoMessage(
+                result.message + ` (${result.totalSteps} steps restored)` +
+                (changesHtml ? `<br><br><strong>Changes Restored:</strong><ul style="margin-top: 10px; padding-left: 20px;">${changesHtml}</ul>` : ''),
+                'success'
+            );
+
+            // Update status
+            await checkLiveDemoStatus();
+
+            // Clear the results to show fresh state
+            setTimeout(() => {
+                document.getElementById('results-container').innerHTML = `
+                        <div class="success-message">
+                            ✅ Configuration restored successfully! You can now run the scenario again to see the original 5-step pipeline.
+                        </div>
+                    `;
+            }, 1000);
+
         } catch (error) {
+            console.error('Restore failed:', error);
             showLiveDemoMessage(`Restore failed: ${error.message}`, 'error');
         } finally {
             btn.disabled = false;
@@ -650,10 +755,19 @@
 
             if (status.exists) {
                 document.getElementById('config-status').style.display = 'block';
+
+                const isModified = status.description.includes('Modified') || status.description.includes('Streamlined');
+                const isRestored = status.description.includes('Restored') || status.description.includes('Back to full');
+
+                let statusIcon = '🔄';
+                if (isModified) statusIcon = '⚡';
+                if (isRestored) statusIcon = '✅';
+
                 document.getElementById('config-details').innerHTML = `
-                        <div><strong>Description:</strong> ${status.description}</div>
+                        <div><strong>Status:</strong> ${statusIcon} ${status.description}</div>
                         <div><strong>Steps:</strong> ${status.totalSteps} (${status.steps.map(s => s.name).join(' → ')})</div>
                         <div><strong>Last Updated:</strong> ${new Date(status.lastUpdated).toLocaleString()}</div>
+                        <div style="font-size: 0.9em; margin-top: 5px;"><strong>Config ID:</strong> ${status.configId}</div>
                     `;
 
                 if (liveDemoResults.length === 0) {
@@ -676,20 +790,20 @@
         const afterSteps = document.getElementById('after-steps');
         const changesSummary = document.getElementById('changes-summary');
 
-        // Show before steps (assume 5 original steps)
+        // Show before steps (original 5 steps)
         beforeSteps.innerHTML = `
-                <li class="step-item">acceptanceRules (order: 1)</li>
-                <li class="step-item step-removed">dataStorage (order: 2) ❌</li>
-                <li class="step-item step-removed">exclusionRules (order: 3) ❌</li>
-                <li class="step-item step-modified">scheduler (order: 4) ⚡</li>
-                <li class="step-item">communicationProvider (order: 5)</li>
+                <li class="step-item">1. acceptanceRules</li>
+                <li class="step-item step-removed">2. dataStorage ❌</li>
+                <li class="step-item step-removed">3. exclusionRules ❌</li>
+                <li class="step-item step-modified">4. scheduler (modified) ⚡</li>
+                <li class="step-item">5. communicationProvider</li>
             `;
 
-        // Show after steps
+        // Show after steps (modified 3 steps)
         afterSteps.innerHTML = `
-                <li class="step-item">acceptanceRules (order: 1)</li>
-                <li class="step-item step-modified">scheduler (order: 2) ⚡ conditional</li>
-                <li class="step-item">communicationProvider (order: 3)</li>
+                <li class="step-item">1. acceptanceRules</li>
+                <li class="step-item step-modified">2. scheduler (conditional) ⚡</li>
+                <li class="step-item">3. communicationProvider</li>
             `;
 
         // Show changes summary
@@ -700,7 +814,7 @@
                         ${modificationResult.changes.map(change => `<li>${change}</li>`).join('')}
                     </ul>
                     <div style="margin-top: 10px;">
-                        <strong>Performance Impact:</strong> Expected ~40% faster execution
+                        <strong>Performance Impact:</strong> Expected ~40% faster execution (${modificationResult.oldSteps} → ${modificationResult.newSteps} steps)
                     </div>
                 </div>
             `;
@@ -714,10 +828,13 @@
         const container = document.getElementById('results-container');
         const success = result.result.success;
         const runNumber = liveDemoResults.length;
-        const configType = runNumber === 1 ? 'Original Configuration' :
-            runNumber === 2 ? 'Modified Configuration' : `Run #${runNumber}`;
+        const configType = runNumber === 1 ? 'Original Configuration (5 steps)' :
+            runNumber === 2 ? 'Modified Configuration (3 steps)' : `Run #${runNumber}`;
 
         const existingResults = container.innerHTML.includes('result-item') ? container.innerHTML : '';
+
+        const performanceComparison = runNumber === 2 && liveDemoResults.length === 2 ?
+            calculatePerformanceImprovement() : '';
 
         container.innerHTML = existingResults + `
                 <div class="result-item ${success ? 'success' : 'failed'}">
@@ -734,22 +851,88 @@
                         <strong>Total Steps:</strong> ${result.executedSteps.length}<br>
                         <strong>Configuration:</strong> ${configType}<br>
                         <strong>Message:</strong> ${result.result.message}
-                        ${runNumber === 2 && liveDemoResults.length === 2 ? `
-                        <br><br><strong>Performance Comparison:</strong>
-                        <br>• Original: ${liveDemoResults[0].actualDuration} (${liveDemoResults[0].executedSteps.length} steps)
-                        <br>• Modified: ${liveDemoResults[1].actualDuration} (${liveDemoResults[1].executedSteps.length} steps)
-                        <br>• Improvement: ${((parseInt(liveDemoResults[0].actualDuration) - parseInt(liveDemoResults[1].actualDuration)) / parseInt(liveDemoResults[0].actualDuration) * 100).toFixed(1)}% faster
-                        ` : ''}
+                        ${performanceComparison}
                     </div>
                 </div>
+            `;
+    }
+
+    function calculatePerformanceImprovement() {
+        if (liveDemoResults.length < 2) return '';
+
+        const originalTime = parseInt(liveDemoResults[0].actualDuration);
+        const modifiedTime = parseInt(liveDemoResults[1].actualDuration);
+        const improvement = ((originalTime - modifiedTime) / originalTime * 100).toFixed(1);
+        const stepReduction = liveDemoResults[0].executedSteps.length - liveDemoResults[1].executedSteps.length;
+
+        return `
+                <br><br><strong>📊 Performance Comparison:</strong>
+                <br>• Original: ${liveDemoResults[0].actualDuration} (${liveDemoResults[0].executedSteps.length} steps)
+                <br>• Modified: ${liveDemoResults[1].actualDuration} (${liveDemoResults[1].executedSteps.length} steps)
+                <br>• Improvement: ${improvement}% faster, ${stepReduction} fewer steps
+                <br>• Efficiency: ${(stepReduction / liveDemoResults[0].executedSteps.length * 100).toFixed(1)}% step reduction
             `;
     }
 
     function showLiveDemoMessage(message, type) {
         const statusDiv = document.getElementById('config-status');
         const className = type === 'success' ? 'success' : 'error';
-        statusDiv.innerHTML = `<div style="color: ${type === 'success' ? '#4caf50' : '#f44336'};">${message}</div>`;
+        const color = type === 'success' ? '#4caf50' : '#f44336';
+        statusDiv.innerHTML = `<div style="color: ${color}; line-height: 1.4;">${message}</div>`;
         statusDiv.style.display = 'block';
+    }
+
+    // Debug functions
+    async function debugConfigs() {
+        try {
+            const response = await fetch(`${API_BASE}/demo/debug/all-configs`);
+            const configs = await response.json();
+            console.log('All configurations:', configs);
+
+            const configSummary = configs.map(config =>
+                `${config.useCase}: ${config.steps.length} steps, updated: ${config.updatedAt}`
+            ).join('\n');
+
+            alert(`Found ${configs.length} configurations:\n\n${configSummary}\n\nCheck console for full details.`);
+        } catch (error) {
+            console.error('Debug failed:', error);
+            alert(`Debug failed: ${error.message}`);
+        }
+    }
+
+    async function clearLiveDemo() {
+        if (!confirm('Are you sure you want to clear the live demo configuration?')) return;
+
+        try {
+            const response = await fetch(`${API_BASE}/demo/debug/clear-live-demo`, { method: 'DELETE' });
+            const result = await response.json();
+
+            // Reset everything
+            liveDemoResults = [];
+            originalConfig = null;
+            modifiedConfig = null;
+            hideComparisonView();
+
+            // Reset buttons
+            document.getElementById('run-live-btn').disabled = true;
+            document.getElementById('modify-btn').disabled = true;
+            document.getElementById('run-modified-btn').disabled = true;
+            document.getElementById('restore-btn').disabled = true;
+
+            showLiveDemoMessage(result.message, 'success');
+            document.getElementById('config-status').style.display = 'none';
+
+            // Clear results
+            document.getElementById('results-container').innerHTML = `
+                    <div class="loading">
+                        Live demo cleared. Click "Setup Initial Config" to start fresh!
+                    </div>
+                `;
+
+        } catch (error) {
+            console.error('Clear failed:', error);
+            showLiveDemoMessage(`Clear failed: ${error.message}`, 'error');
+        }
     }
 
     // Regular scenario functions
@@ -762,11 +945,12 @@
 
         try {
             const response = await fetch(`${API_BASE}/demo/run/${scenarioId}`, { method: 'POST' });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
             const result = await response.json();
             displayResult(result);
         } catch (error) {
+            console.error('Scenario execution failed:', error);
             displayError(`Failed to run scenario: ${error.message}`);
         } finally {
             buttonElement.disabled = false;
@@ -784,11 +968,12 @@
 
         try {
             const response = await fetch(`${API_BASE}/demo/batch-demo`, { method: 'POST' });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
             const result = await response.json();
             displayBatchResult(result);
         } catch (error) {
+            console.error('Batch demo failed:', error);
             displayError(`Batch demo failed: ${error.message}`);
         } finally {
             btn.disabled = false;
@@ -802,8 +987,7 @@
                     👆 Use the Live Configuration Demo above or click "Run" on any scenario to see results here...
                 </div>
             `;
-        liveDemoResults = [];
-        hideComparisonView();
+        // Don't clear liveDemoResults as that affects the live demo state
     }
 
     function showLoading() {
@@ -816,9 +1000,13 @@
     }
 
     function showMessage(message, type) {
-        const className = type === 'success' ? 'success-message' : 'error-message';
+        const className = type === 'success' ? 'success-message' :
+            type === 'error' ? 'error-message' : 'loading';
+
         document.getElementById('results-container').innerHTML = `
-                <div class="${className}">${message}</div>
+                <div class="${className}">
+                    ${message}
+                </div>
             `;
     }
 
@@ -839,6 +1027,8 @@
                         <strong>Steps Executed:</strong> ${result.executedSteps.length > 0 ? result.executedSteps.join(' → ') : 'None'}<br>
                         <strong>Worker ID:</strong> ${result.request.workerId}<br>
                         <strong>Use Case:</strong> ${result.request.useCase}<br>
+                        <strong>Priority:</strong> ${result.request.priority}<br>
+                        <strong>Communication Type:</strong> ${result.request.communicationType}<br>
                         <strong>Message:</strong> ${result.result.message}<br>
                         <strong>Final Status:</strong> ${result.request.status}
                     </div>
@@ -860,7 +1050,8 @@
                     <div class="result-details">
                         <strong>Total Duration:</strong> ${batchResult.totalDuration}<br>
                         <strong>Successful:</strong> ${batchResult.successfulScenarios}<br>
-                        <strong>Failed:</strong> ${batchResult.failedScenarios}
+                        <strong>Failed:</strong> ${batchResult.failedScenarios}<br>
+                        <strong>Scenarios Run:</strong> ${batchResult.results.length}
                     </div>
                 </div>
             `;
@@ -877,7 +1068,7 @@
                         </div>
                         <div class="result-details">
                             <strong>Duration:</strong> ${result.actualDuration} |
-                            <strong>Steps:</strong> ${result.executedSteps.join(' → ')}
+                            <strong>Steps:</strong> ${result.executedSteps.length > 0 ? result.executedSteps.join(' → ') : 'None'}
                         </div>
                     </div>
                 `;

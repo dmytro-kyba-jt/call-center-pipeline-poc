@@ -18,6 +18,9 @@ class DemoController(
 
     @PostMapping("/setup-live-demo")
     fun setupLiveDemo(): ResponseEntity<Map<String, Any>> {
+        // Delete any existing configuration first
+        configRepository.deleteByUseCase("live-config-demo")
+
         // Create initial configuration for live demo
         val initialConfig = UseCasePipelineConfig(
             useCase = "live-config-demo",
@@ -40,21 +43,24 @@ class DemoController(
             "message" to "Live demo configuration created successfully",
             "useCase" to "live-config-demo",
             "steps" to initialConfig.steps.map { "${it.stepName} (order: ${it.order})" },
-            "totalSteps" to initialConfig.steps.size
+            "totalSteps" to initialConfig.steps.size,
+            "configId" to initialConfig.id
         ))
     }
 
     @PostMapping("/modify-live-demo")
     fun modifyLiveDemo(): ResponseEntity<Map<String, Any>> {
         val existingConfig = configRepository.findByUseCase("live-config-demo")
-            ?: return ResponseEntity.notFound().build()
+            ?: return ResponseEntity.badRequest().body(mapOf(
+                "error" to "Live demo configuration not found. Please run setup first."
+            ))
 
-        // Create modified configuration - faster pipeline
+        // Create modified configuration - keeping the same ID to overwrite
         val modifiedConfig = existingConfig.copy(
             description = "⚡ Modified configuration - Streamlined for speed",
             steps = listOf(
                 PipelineStepConfig("acceptanceRules", 1, true),
-                // Skip dataStorage for speed
+                // Skip dataStorage and exclusionRules for speed
                 PipelineStepConfig("scheduler", 2, true,
                     condition = "priority=HIGH", // Only schedule if HIGH priority
                     configuration = mapOf(
@@ -63,7 +69,8 @@ class DemoController(
                     )
                 ),
                 PipelineStepConfig("communicationProvider", 3, true)
-            )
+            ),
+            updatedAt = java.time.LocalDateTime.now()
         )
 
         configRepository.save(modifiedConfig)
@@ -80,15 +87,20 @@ class DemoController(
             ),
             "oldSteps" to existingConfig.steps.size,
             "newSteps" to modifiedConfig.steps.size,
-            "stepsRemoved" to (existingConfig.steps.size - modifiedConfig.steps.size)
+            "stepsRemoved" to (existingConfig.steps.size - modifiedConfig.steps.size),
+            "configId" to modifiedConfig.id
         ))
     }
 
     @PostMapping("/restore-live-demo")
     fun restoreLiveDemo(): ResponseEntity<Map<String, Any>> {
-        // Restore to original configuration
-        val restoredConfig = UseCasePipelineConfig(
-            useCase = "live-config-demo",
+        val existingConfig = configRepository.findByUseCase("live-config-demo")
+            ?: return ResponseEntity.badRequest().body(mapOf(
+                "error" to "Live demo configuration not found. Please run setup first."
+            ))
+
+        // Restore to original configuration - keeping the same ID to overwrite
+        val restoredConfig = existingConfig.copy(
             description = "🔄 Restored configuration - Back to full pipeline",
             steps = listOf(
                 PipelineStepConfig("acceptanceRules", 1, true),
@@ -99,16 +111,25 @@ class DemoController(
                     "retries" to 2
                 )),
                 PipelineStepConfig("communicationProvider", 5, true)
-            )
+            ),
+            updatedAt = java.time.LocalDateTime.now()
         )
 
         configRepository.save(restoredConfig)
 
         return ResponseEntity.ok(mapOf(
-            "message" to "Live demo configuration restored to original",
+            "message" to "Live demo configuration restored to original successfully",
             "useCase" to "live-config-demo",
             "steps" to restoredConfig.steps.map { "${it.stepName} (order: ${it.order})" },
-            "totalSteps" to restoredConfig.steps.size
+            "totalSteps" to restoredConfig.steps.size,
+            "changes" to listOf(
+                "✅ Restored: dataStorage step",
+                "✅ Restored: exclusionRules step",
+                "🔄 Restored: scheduler back to unconditional",
+                "🔄 Restored: original timing (100ms delay)",
+                "🔄 Restored: original retries (2)"
+            ),
+            "configId" to restoredConfig.id
         ))
     }
 
@@ -134,7 +155,22 @@ class DemoController(
                 )
             },
             "totalSteps" to config.steps.size,
-            "lastUpdated" to config.updatedAt.toString()
+            "lastUpdated" to config.updatedAt.toString(),
+            "configId" to config.id
+        ))
+    }
+
+    @GetMapping("/debug/all-configs")
+    fun getAllConfigs(): ResponseEntity<List<UseCasePipelineConfig>> {
+        return ResponseEntity.ok(configRepository.findAll())
+    }
+
+    @DeleteMapping("/debug/clear-live-demo")
+    fun clearLiveDemo(): ResponseEntity<Map<String, Any>> {
+        val deleted = configRepository.deleteByUseCase("live-config-demo")
+        return ResponseEntity.ok(mapOf(
+            "message" to "Live demo configuration cleared",
+            "deleted" to deleted
         ))
     }
 
