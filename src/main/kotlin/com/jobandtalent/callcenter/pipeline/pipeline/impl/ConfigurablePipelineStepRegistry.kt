@@ -4,11 +4,13 @@ import com.jobandtalent.callcenter.pipeline.pipeline.PipelineStep
 import com.jobandtalent.callcenter.pipeline.pipeline.PipelineStepRegistry
 import com.jobandtalent.callcenter.pipeline.pipeline.steps.ConfigurableStepWrapper
 import com.jobandtalent.callcenter.pipeline.repository.PipelineConfigRepository
+import org.springframework.context.annotation.Primary
 import org.springframework.core.annotation.AnnotationUtils
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 @Component
+@Primary
 class ConfigurablePipelineStepRegistry(
     private val configRepository: PipelineConfigRepository
 ) : PipelineStepRegistry {
