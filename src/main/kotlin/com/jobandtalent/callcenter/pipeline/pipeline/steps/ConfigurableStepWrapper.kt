@@ -36,14 +36,34 @@ class ConfigurableStepWrapper(
         // Simple condition evaluation - extend as needed
         return when {
             condition.startsWith("priority=") -> {
-                val expectedPriority = condition.substringAfter("priority=")
+                val parts = condition.split("=")
+                // Handle malformed conditions with multiple equals signs
+                if (parts.size != 2) {
+                    // Malformed condition with multiple equals - treat as unknown and return true
+                    return true
+                }
+                val expectedPriority = parts[1]
+                // Empty value should not match any priority
+                if (expectedPriority.isEmpty()) {
+                    return false
+                }
                 request.priority.name.equals(expectedPriority, ignoreCase = true)
             }
             condition.startsWith("communicationType=") -> {
-                val expectedType = condition.substringAfter("communicationType=")
+                val parts = condition.split("=")
+                // Handle malformed conditions with multiple equals signs
+                if (parts.size != 2) {
+                    // Malformed condition with multiple equals - treat as unknown and return true
+                    return true
+                }
+                val expectedType = parts[1]
+                // Empty value should not match any communication type
+                if (expectedType.isEmpty()) {
+                    return false
+                }
                 request.communicationType.name.equals(expectedType, ignoreCase = true)
             }
-            else -> true
+            else -> true // Unknown condition type - return true as fallback
         }
     }
 

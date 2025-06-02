@@ -37,10 +37,6 @@ class ConfigurableStepWrapperTest {
             priority = Priority.NORMAL,
             metadata = mutableMapOf()
         )
-
-        // Only stub what's needed for all tests - these are properties
-        whenever(delegateStep.stepName).thenReturn("test-step")
-        whenever(delegateStep.description).thenReturn("Test Step Description")
     }
 
     @Nested
@@ -207,14 +203,18 @@ class ConfigurableStepWrapperTest {
                     Priority.HIGH to "priority=HIGH",
                     Priority.URGENT to "priority=URGENT"
                 )
-                whenever(delegateStep.canExecute(any())).thenReturn(true)
 
                 priorities.forEach { (priority, condition) ->
                     val wrapper = ConfigurableStepWrapper(delegateStep, emptyMap(), condition)
+                    whenever(delegateStep.canExecute(any())).thenReturn(true)
+
                     val request = testRequest.copy(priority = priority)
 
                     // When & Then
                     assertTrue(wrapper.canExecute(request), "Should execute for $priority")
+
+                    // Reset mock for next iteration
+                    reset(delegateStep)
                 }
             }
         }
@@ -257,14 +257,18 @@ class ConfigurableStepWrapperTest {
                     CommunicationType.EMAIL to "communicationType=EMAIL",
                     CommunicationType.PUSH_NOTIFICATION to "communicationType=PUSH_NOTIFICATION"
                 )
-                whenever(delegateStep.canExecute(any())).thenReturn(true)
 
                 communicationTypes.forEach { (type, condition) ->
                     val wrapper = ConfigurableStepWrapper(delegateStep, emptyMap(), condition)
+                    whenever(delegateStep.canExecute(any())).thenReturn(true)
+
                     val request = testRequest.copy(communicationType = type)
 
                     // When & Then
                     assertTrue(wrapper.canExecute(request), "Should execute for $type")
+
+                    // Reset mock for next iteration
+                    reset(delegateStep)
                 }
             }
         }
@@ -307,15 +311,19 @@ class ConfigurableStepWrapperTest {
                 "priority", // Missing equals
                 "=HIGH",    // Missing key
                 "",         // Empty condition
-                "priority=HIGH=EXTRA" // Multiple equals
+                "priority=HIGH=EXTRA", // Multiple equals - treated as malformed
+                "communicationType=SMS=EXTRA" // Multiple equals for communication type
             )
-            whenever(delegateStep.canExecute(any())).thenReturn(true)
 
             malformedConditions.forEach { condition ->
                 val wrapper = ConfigurableStepWrapper(delegateStep, emptyMap(), condition)
+                whenever(delegateStep.canExecute(any())).thenReturn(true)
 
                 // When & Then - should fallback to checking delegate
                 assertTrue(wrapper.canExecute(testRequest), "Should handle malformed condition: '$condition'")
+
+                // Reset mock for next iteration
+                reset(delegateStep)
             }
         }
 
@@ -331,6 +339,28 @@ class ConfigurableStepWrapperTest {
             // Then - empty value should not match NORMAL priority
             assertFalse(canExecute)
             verify(delegateStep, never()).canExecute(any())
+        }
+
+        @Test
+        fun `should handle specific malformed conditions with multiple equals`() {
+            // Given
+            val malformedConditions = mapOf(
+                "priority=HIGH=EXTRA" to "Multiple equals in priority condition",
+                "communicationType=SMS=INVALID" to "Multiple equals in communication type condition",
+                "priority==HIGH" to "Double equals"
+            )
+
+            malformedConditions.forEach { (condition, description) ->
+                val wrapper = ConfigurableStepWrapper(delegateStep, emptyMap(), condition)
+                whenever(delegateStep.canExecute(any())).thenReturn(true)
+
+                // When & Then - all should be treated as malformed and fallback to delegate
+                assertTrue(wrapper.canExecute(testRequest), "Failed for: $description")
+                verify(delegateStep).canExecute(testRequest)
+
+                // Reset mock for next iteration
+                reset(delegateStep)
+            }
         }
     }
 
@@ -385,6 +415,7 @@ class ConfigurableStepWrapperTest {
         @Test
         fun `should return delegate step name`() {
             // Given
+            whenever(delegateStep.stepName).thenReturn("test-step")
             val wrapper = ConfigurableStepWrapper(delegateStep, emptyMap(), null)
 
             // When & Then
@@ -394,6 +425,7 @@ class ConfigurableStepWrapperTest {
         @Test
         fun `should return delegate description`() {
             // Given
+            whenever(delegateStep.description).thenReturn("Test Step Description")
             val wrapper = ConfigurableStepWrapper(delegateStep, emptyMap(), null)
 
             // When & Then
@@ -403,6 +435,8 @@ class ConfigurableStepWrapperTest {
         @Test
         fun `should return delegate properties consistently`() {
             // Given
+            whenever(delegateStep.stepName).thenReturn("test-step")
+            whenever(delegateStep.description).thenReturn("Test Step Description")
             val wrapper = ConfigurableStepWrapper(delegateStep, emptyMap(), null)
 
             // When - call multiple times
@@ -448,6 +482,8 @@ class ConfigurableStepWrapperTest {
         @Test
         fun `should not execute when condition fails but still provide correct properties`() {
             // Given
+            whenever(delegateStep.stepName).thenReturn("test-step")
+            whenever(delegateStep.description).thenReturn("Test Step Description")
             val wrapper = ConfigurableStepWrapper(delegateStep, emptyMap(), "priority=HIGH")
             val lowPriorityRequest = testRequest.copy(priority = Priority.LOW)
 
