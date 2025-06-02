@@ -9,11 +9,9 @@ import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
-import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Service
 
 @Service
-@Primary
 class CommunicationPipelineExecutorImpl(
     private val stepRegistry: PipelineStepRegistry
 ) : CommunicationPipelineExecutor {
