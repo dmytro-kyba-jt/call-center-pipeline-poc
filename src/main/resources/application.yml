@@ -1,4 +1,7 @@
 spring:
+  main:
+    banner-mode: off
+
   application:
     admin:
       jmx-name: call-center-pipeline-poc
@@ -26,3 +29,7 @@ logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%X{requestId}] %logger{36} - %msg%n"
 
+app:
+  demo:
+    enabled: true
+    auto-initialize: true

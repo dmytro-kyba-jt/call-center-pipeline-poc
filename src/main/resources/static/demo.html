@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Communication Pipeline - Live Demo Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .scenario-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .scenario-card:hover {
+            border-color: #3498db;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .scenario-title {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .scenario-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .scenario-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+
+        .run-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .run-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(39, 174, 96, 0.3);
+        }
+
+        .run-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .batch-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .batch-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .batch-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        .batch-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .results-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            min-height: 200px;
+        }
+
+        .result-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 5px solid #27ae60;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .result-item.failed {
+            border-left-color: #e74c3c;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .result-title {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .result-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .result-status.success {
+            background: #27ae60;
+        }
+
+        .result-status.failed {
+            background: #e74c3c;
+        }
+
+        .result-details {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .performance-chart {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .chart-label {
+            width: 200px;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 0.9em;
+        }
+
+        .chart-value {
+            flex-grow: 1;
+            background: #ecf0f1;
+            height: 30px;
+            border-radius: 15px;
+            position: relative;
+            margin: 0 15px;
+        }
+
+        .chart-fill {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            height: 100%;
+            border-radius: 15px;
+            transition: width 1s ease;
+        }
+
+        .chart-text {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.9em;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #f5c6cb;
+            margin: 10px 0;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #c3e6cb;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .scenarios-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .scenario-details {
+                grid-template-columns: 1fr;
+            }
+
+            .batch-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .batch-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .result-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🚀 Communication Pipeline</h1>
+        <p>Live Demo Dashboard - Static vs Configurable Approaches</p>
+    </div>
+
+    <div class="main-content">
+        <!-- Demo Scenarios Section -->
+        <div class="section">
+            <h2>📋 Demo Scenarios</h2>
+            <div id="scenarios-container">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading demo scenarios...
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Operations Section -->
+        <div class="section">
+            <h2>📊 Batch Operations</h2>
+            <div class="batch-controls">
+                <button class="batch-btn" onclick="runBatchDemo()">
+                    🚀 Run Batch Demo
+                </button>
+                <button class="batch-btn" onclick="runPerformanceTest()">
+                    ⚡ Performance Comparison
+                </button>
+                <button class="batch-btn" onclick="clearResults()">
+                    🗑️ Clear Results
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="section">
+            <h2>📈 Results</h2>
+            <div id="results-container" class="results-container">
+                <div class="loading">
+                    Click "Run" on any scenario above to see results here...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = 'http://localhost:8080/api';
+    let scenarios = [];
+
+    // Load scenarios on page load
+    window.onload = async function() {
+        await loadScenarios();
+    };
+
+    async function loadScenarios() {
+        try {
+            showMessage('Loading demo scenarios...', 'info');
+            const response = await fetch(`${API_BASE}/demo/scenarios`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            scenarios = await response.json();
+            displayScenarios();
+            showMessage(`Loaded ${scenarios.length} demo scenarios successfully!`, 'success');
+        } catch (error) {
+            console.error('Failed to load scenarios:', error);
+            const errorHtml = `
+                    <div class="error-message">
+                        ❌ Failed to load scenarios.
+                        <br><strong>Error:</strong> ${error.message}
+                        <br><strong>Make sure:</strong>
+                        <ul style="margin-top: 10px; padding-left: 20px;">
+                            <li>The server is running on localhost:8080</li>
+                            <li>The DemoController is properly configured</li>
+                            <li>CORS is enabled (if needed)</li>
+                        </ul>
+                    </div>
+                `;
+            document.getElementById('scenarios-container').innerHTML = errorHtml;
+        }
+    }
+
+    function displayScenarios() {
+        const container = document.getElementById('scenarios-container');
+        container.innerHTML = '';
+
+        const grid = document.createElement('div');
+        grid.className = 'scenarios-grid';
+
+        scenarios.forEach(scenario => {
+            const card = document.createElement('div');
+            card.className = 'scenario-card';
+            card.innerHTML = `
+                    <div class="scenario-title">${scenario.name}</div>
+                    <div class="scenario-description">${scenario.description}</div>
+                    <div class="scenario-details">
+                        <div class="detail-item">
+                            <strong>Use Case:</strong> ${scenario.useCase}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Priority:</strong> ${scenario.priority}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Type:</strong> ${scenario.communicationType}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Est. Time:</strong> ${scenario.estimatedTime}
+                        </div>
+                    </div>
+                    <button class="run-btn" onclick="runScenario('${scenario.id}', this)">
+                        🚀 Run Scenario
+                    </button>
+                `;
+            grid.appendChild(card);
+        });
+
+        container.appendChild(grid);
+    }
+
+    async function runScenario(scenarioId, buttonElement) {
+        const originalText = buttonElement.textContent;
+        buttonElement.disabled = true;
+        buttonElement.textContent = '⏳ Running...';
+
+        showLoading();
+
+        try {
+            const response = await fetch(`${API_BASE}/demo/run/${scenarioId}`, {
+                method: 'POST'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            displayResult(result);
+        } catch (error) {
+            console.error('Scenario execution failed:', error);
+            displayError(`Failed to run scenario: ${error.message}`);
+        } finally {
+            buttonElement.disabled = false;
+            buttonElement.textContent = originalText;
+        }
+    }
+
+    async function runBatchDemo() {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '⏳ Running Batch Demo...';
+
+        showLoading();
+
+        try {
+            const response = await fetch(`${API_BASE}/demo/batch-demo`, {
+                method: 'POST'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            displayBatchResult(result);
+        } catch (error) {
+            console.error('Batch demo failed:', error);
+            displayError(`Batch demo failed: ${error.message}`);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    }
+
+    async function runPerformanceTest() {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '⏳ Running Performance Test...';
+
+        showLoading();
+
+        try {
+            // Note: This endpoint might not exist yet, it's from the original demo controller
+            const response = await fetch(`${API_BASE}/demo/performance-comparison`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            displayPerformanceResult(result);
+        } catch (error) {
+            console.error('Performance test failed:', error);
+            displayError(`Performance test failed: ${error.message}. This endpoint might not be implemented yet.`);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    }
+
+    function clearResults() {
+        document.getElementById('results-container').innerHTML = `
+                <div class="loading">
+                    Click "Run" on any scenario above to see results here...
+                </div>
+            `;
+    }
+
+    function showLoading() {
+        document.getElementById('results-container').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Processing request...
+                </div>
+            `;
+    }
+
+    function showMessage(message, type) {
+        const className = type === 'success' ? 'success-message' :
+            type === 'error' ? 'error-message' : 'loading';
+
+        document.getElementById('results-container').innerHTML = `
+                <div class="${className}">
+                    ${message}
+                </div>
+            `;
+    }
+
+    function displayResult(result) {
+        const container = document.getElementById('results-container');
+        const success = result.result.success;
+
+        container.innerHTML = `
+                <div class="result-item ${success ? 'success' : 'failed'}">
+                    <div class="result-header">
+                        <div class="result-title">${result.scenario.name}</div>
+                        <div class="result-status ${success ? 'success' : 'failed'}">
+                            ${success ? '✅ SUCCESS' : '❌ FAILED'}
+                        </div>
+                    </div>
+                    <div class="result-details">
+                        <strong>Duration:</strong> ${result.actualDuration}<br>
+                        <strong>Steps Executed:</strong> ${result.executedSteps.length > 0 ? result.executedSteps.join(' → ') : 'None'}<br>
+                        <strong>Worker ID:</strong> ${result.request.workerId}<br>
+                        <strong>Use Case:</strong> ${result.request.useCase}<br>
+                        <strong>Priority:</strong> ${result.request.priority}<br>
+                        <strong>Communication Type:</strong> ${result.request.communicationType}<br>
+                        <strong>Message:</strong> ${result.result.message}<br>
+                        <strong>Final Status:</strong> ${result.request.status}
+                    </div>
+                </div>
+            `;
+    }
+
+    function displayBatchResult(batchResult) {
+        const container = document.getElementById('results-container');
+
+        let html = `
+                <div class="result-item success">
+                    <div class="result-header">
+                        <div class="result-title">📊 Batch Demo Results</div>
+                        <div class="result-status success">
+                            ${batchResult.successfulScenarios}/${batchResult.totalScenarios} SUCCESS
+                        </div>
+                    </div>
+                    <div class="result-details">
+                        <strong>Total Duration:</strong> ${batchResult.totalDuration}<br>
+                        <strong>Successful:</strong> ${batchResult.successfulScenarios}<br>
+                        <strong>Failed:</strong> ${batchResult.failedScenarios}<br>
+                        <strong>Scenarios Run:</strong> ${batchResult.results.length}
+                    </div>
+                </div>
+            `;
+
+        batchResult.results.forEach(result => {
+            const success = result.result.success;
+            html += `
+                    <div class="result-item ${success ? 'success' : 'failed'}">
+                        <div class="result-header">
+                            <div class="result-title">${result.scenario.name}</div>
+                            <div class="result-status ${success ? 'success' : 'failed'}">
+                                ${success ? '✅ SUCCESS' : '❌ FAILED'}
+                            </div>
+                        </div>
+                        <div class="result-details">
+                            <strong>Duration:</strong> ${result.actualDuration} |
+                            <strong>Steps:</strong> ${result.executedSteps.length > 0 ? result.executedSteps.join(' → ') : 'None'}
+                        </div>
+                    </div>
+                `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function displayPerformanceResult(perfResult) {
+        const container = document.getElementById('results-container');
+
+        let html = `
+                <div class="result-item success">
+                    <div class="result-header">
+                        <div class="result-title">⚡ Performance Comparison</div>
+                        <div class="result-status success">COMPLETED</div>
+                    </div>
+                    <div class="result-details">
+                        Performance measurements across different pipeline configurations
+                    </div>
+                </div>
+                <div class="performance-chart">
+                    <h3>Average Response Times</h3>
+            `;
+
+        const maxTime = Math.max(...Object.values(perfResult.measurements).map(stats => stats.average));
+
+        Object.entries(perfResult.measurements).forEach(([scenario, stats]) => {
+            const percentage = (stats.average / maxTime) * 100;
+            html += `
+                    <div class="chart-bar">
+                        <div class="chart-label">${scenario}</div>
+                        <div class="chart-value">
+                            <div class="chart-fill" style="width: ${percentage}%"></div>
+                            <div class="chart-text">${stats.average.toFixed(1)}ms</div>
+                        </div>
+                    </div>
+                `;
+        });
+
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    function displayError(message) {
+        document.getElementById('results-container').innerHTML = `
+                <div class="result-item failed">
+                    <div class="result-header">
+                        <div class="result-title">❌ Error</div>
+                        <div class="result-status failed">FAILED</div>
+                    </div>
+                    <div class="result-details">
+                        ${message}
+                    </div>
+                </div>
+            `;
+    }
+</script>
+</body>
+</html>
