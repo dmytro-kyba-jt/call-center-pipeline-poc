@@ -1,7 +1,9 @@
 package com.jobandtalent.callcenter.pipeline.controller
 
 import com.jobandtalent.callcenter.pipeline.domain.*
+import com.jobandtalent.callcenter.pipeline.repository.PipelineConfigRepository
 import com.jobandtalent.callcenter.pipeline.service.CommunicationService
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -10,10 +12,145 @@ import org.springframework.web.bind.annotation.*
 class DemoController(
     private val communicationService: CommunicationService
 ) {
+    @Autowired
+    private lateinit var configRepository: PipelineConfigRepository
+
+
+    @PostMapping("/setup-live-demo")
+    fun setupLiveDemo(): ResponseEntity<Map<String, Any>> {
+        // Create initial configuration for live demo
+        val initialConfig = UseCasePipelineConfig(
+            useCase = "live-config-demo",
+            description = "🔄 Initial configuration - Full pipeline with all steps",
+            steps = listOf(
+                PipelineStepConfig("acceptanceRules", 1, true),
+                PipelineStepConfig("dataStorage", 2, true),
+                PipelineStepConfig("exclusionRules", 3, true),
+                PipelineStepConfig("scheduler", 4, true, configuration = mapOf(
+                    "delay" to 100,
+                    "retries" to 2
+                )),
+                PipelineStepConfig("communicationProvider", 5, true)
+            )
+        )
+
+        configRepository.save(initialConfig)
+
+        return ResponseEntity.ok(mapOf(
+            "message" to "Live demo configuration created successfully",
+            "useCase" to "live-config-demo",
+            "steps" to initialConfig.steps.map { "${it.stepName} (order: ${it.order})" },
+            "totalSteps" to initialConfig.steps.size
+        ))
+    }
+
+    @PostMapping("/modify-live-demo")
+    fun modifyLiveDemo(): ResponseEntity<Map<String, Any>> {
+        val existingConfig = configRepository.findByUseCase("live-config-demo")
+            ?: return ResponseEntity.notFound().build()
+
+        // Create modified configuration - faster pipeline
+        val modifiedConfig = existingConfig.copy(
+            description = "⚡ Modified configuration - Streamlined for speed",
+            steps = listOf(
+                PipelineStepConfig("acceptanceRules", 1, true),
+                // Skip dataStorage for speed
+                PipelineStepConfig("scheduler", 2, true,
+                    condition = "priority=HIGH", // Only schedule if HIGH priority
+                    configuration = mapOf(
+                        "delay" to 50,  // Faster scheduling
+                        "retries" to 1  // Fewer retries
+                    )
+                ),
+                PipelineStepConfig("communicationProvider", 3, true)
+            )
+        )
+
+        configRepository.save(modifiedConfig)
+
+        return ResponseEntity.ok(mapOf(
+            "message" to "Live demo configuration modified successfully",
+            "useCase" to "live-config-demo",
+            "changes" to listOf(
+                "❌ Removed: dataStorage step",
+                "❌ Removed: exclusionRules step",
+                "⚡ Modified: scheduler now conditional (priority=HIGH)",
+                "⚡ Modified: faster scheduling (50ms vs 100ms)",
+                "⚡ Modified: fewer retries (1 vs 2)"
+            ),
+            "oldSteps" to existingConfig.steps.size,
+            "newSteps" to modifiedConfig.steps.size,
+            "stepsRemoved" to (existingConfig.steps.size - modifiedConfig.steps.size)
+        ))
+    }
+
+    @PostMapping("/restore-live-demo")
+    fun restoreLiveDemo(): ResponseEntity<Map<String, Any>> {
+        // Restore to original configuration
+        val restoredConfig = UseCasePipelineConfig(
+            useCase = "live-config-demo",
+            description = "🔄 Restored configuration - Back to full pipeline",
+            steps = listOf(
+                PipelineStepConfig("acceptanceRules", 1, true),
+                PipelineStepConfig("dataStorage", 2, true),
+                PipelineStepConfig("exclusionRules", 3, true),
+                PipelineStepConfig("scheduler", 4, true, configuration = mapOf(
+                    "delay" to 100,
+                    "retries" to 2
+                )),
+                PipelineStepConfig("communicationProvider", 5, true)
+            )
+        )
+
+        configRepository.save(restoredConfig)
+
+        return ResponseEntity.ok(mapOf(
+            "message" to "Live demo configuration restored to original",
+            "useCase" to "live-config-demo",
+            "steps" to restoredConfig.steps.map { "${it.stepName} (order: ${it.order})" },
+            "totalSteps" to restoredConfig.steps.size
+        ))
+    }
+
+    @GetMapping("/live-demo-status")
+    fun getLiveDemoStatus(): ResponseEntity<Map<String, Any>> {
+        val config = configRepository.findByUseCase("live-config-demo")
+            ?: return ResponseEntity.ok(mapOf(
+                "exists" to false,
+                "message" to "Live demo configuration not found. Run setup first."
+            ))
+
+        return ResponseEntity.ok(mapOf(
+            "exists" to true,
+            "useCase" to config.useCase,
+            "description" to config.description,
+            "steps" to config.steps.map { step ->
+                mapOf(
+                    "name" to step.stepName,
+                    "order" to step.order,
+                    "enabled" to step.isEnabled,
+                    "condition" to step.condition,
+                    "configuration" to step.configuration
+                )
+            },
+            "totalSteps" to config.steps.size,
+            "lastUpdated" to config.updatedAt.toString()
+        ))
+    }
 
     @GetMapping("/scenarios")
     fun getDemoScenarios(): List<DemoScenario> {
         return listOf(
+            DemoScenario(
+                id = "live-config-demo",
+                name = "🔄 Live Configuration Demo",
+                description = "Demonstrates runtime pipeline modification - run, modify, run again!",
+                useCase = "live-config-demo",
+                priority = Priority.NORMAL,
+                communicationType = CommunicationType.EMAIL,
+                expectedSteps = listOf("acceptanceRules", "dataStorage", "scheduler", "communicationProvider"),
+                estimatedTime = "~400ms"
+            ),
             DemoScenario(
                 id = "emergency",
                 name = "⚡ Emergency Alert",

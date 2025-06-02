@@ -60,6 +60,124 @@
             padding-bottom: 10px;
         }
 
+        /* Live Configuration Demo Styles */
+        .live-demo-container {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .live-demo-title {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .live-demo-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .live-demo-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .live-demo-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .live-demo-btn:disabled {
+            background: rgba(255,255,255,0.1);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .config-status {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comparison-box {
+            background: white;
+            color: #2c3e50;
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .comparison-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            padding: 8px;
+            border-radius: 5px;
+        }
+
+        .before-title {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .after-title {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .step-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .step-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+        }
+
+        .step-removed {
+            background: #ffebee;
+            border-left-color: #f44336;
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .step-added {
+            background: #e8f5e8;
+            border-left-color: #4caf50;
+        }
+
+        .step-modified {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+        }
+
+        /* Regular Scenarios Styles */
         .scenarios-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -159,13 +277,6 @@
             box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
         }
 
-        .batch-btn:disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
         .results-container {
             background: #f8f9fa;
             border-radius: 10px;
@@ -244,69 +355,17 @@
             100% { transform: rotate(360deg); }
         }
 
-        .performance-chart {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            border: 2px solid #e0e0e0;
-        }
-
-        .chart-bar {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .chart-label {
-            width: 200px;
-            font-weight: bold;
-            color: #2c3e50;
-            font-size: 0.9em;
-        }
-
-        .chart-value {
-            flex-grow: 1;
-            background: #ecf0f1;
-            height: 30px;
-            border-radius: 15px;
-            position: relative;
-            margin: 0 15px;
-        }
-
-        .chart-fill {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            height: 100%;
-            border-radius: 15px;
-            transition: width 1s ease;
-        }
-
-        .chart-text {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 0.9em;
-            color: #2c3e50;
-            font-weight: bold;
-        }
-
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            border: 1px solid #f5c6cb;
+        .changes-list {
+            list-style: none;
+            padding: 0;
             margin: 10px 0;
         }
 
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
+        .changes-list li {
+            padding: 5px 10px;
+            margin: 3px 0;
             border-radius: 5px;
-            border: 1px solid #c3e6cb;
-            margin: 10px 0;
+            background: rgba(255,255,255,0.1);
         }
 
         @media (max-width: 768px) {
@@ -314,24 +373,12 @@
                 grid-template-columns: 1fr;
             }
 
-            .scenario-details {
+            .live-demo-controls {
                 grid-template-columns: 1fr;
             }
 
-            .batch-controls {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .batch-btn {
-                width: 100%;
-                max-width: 300px;
-            }
-
-            .result-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
+            .comparison-container {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -344,9 +391,59 @@
     </div>
 
     <div class="main-content">
-        <!-- Demo Scenarios Section -->
+        <!-- Live Configuration Demo Section -->
         <div class="section">
-            <h2>📋 Demo Scenarios</h2>
+            <h2>🔄 Live Configuration Demo</h2>
+            <div class="live-demo-container">
+                <div class="live-demo-title">
+                    Real-time Pipeline Modification - See Changes Instantly!
+                </div>
+
+                <div class="live-demo-controls">
+                    <button class="live-demo-btn" onclick="setupLiveDemo()">
+                        🚀 1. Setup Initial Config
+                    </button>
+                    <button class="live-demo-btn" onclick="runLiveDemo()" id="run-live-btn" disabled>
+                        ▶️ 2. Run Scenario
+                    </button>
+                    <button class="live-demo-btn" onclick="modifyLiveDemo()" id="modify-btn" disabled>
+                        ⚡ 3. Modify Pipeline
+                    </button>
+                    <button class="live-demo-btn" onclick="runLiveDemo()" id="run-modified-btn" disabled>
+                        🔄 4. Run Modified
+                    </button>
+                    <button class="live-demo-btn" onclick="restoreLiveDemo()" id="restore-btn" disabled>
+                        🔄 5. Restore Original
+                    </button>
+                    <button class="live-demo-btn" onclick="checkLiveDemoStatus()">
+                        📊 Check Status
+                    </button>
+                </div>
+
+                <div id="config-status" class="config-status" style="display: none;">
+                    <strong>Current Configuration:</strong>
+                    <div id="config-details"></div>
+                </div>
+
+                <div id="comparison-area" style="display: none;">
+                    <div class="comparison-container">
+                        <div class="comparison-box">
+                            <div class="comparison-title before-title">Before Modification</div>
+                            <ul id="before-steps" class="step-list"></ul>
+                        </div>
+                        <div class="comparison-box">
+                            <div class="comparison-title after-title">After Modification</div>
+                            <ul id="after-steps" class="step-list"></ul>
+                            <div id="changes-summary"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Regular Demo Scenarios Section -->
+        <div class="section">
+            <h2>📋 Standard Demo Scenarios</h2>
             <div id="scenarios-container">
                 <div class="loading">
                     <div class="spinner"></div>
@@ -362,9 +459,6 @@
                 <button class="batch-btn" onclick="runBatchDemo()">
                     🚀 Run Batch Demo
                 </button>
-                <button class="batch-btn" onclick="runPerformanceTest()">
-                    ⚡ Performance Comparison
-                </button>
                 <button class="batch-btn" onclick="clearResults()">
                     🗑️ Clear Results
                 </button>
@@ -376,7 +470,7 @@
             <h2>📈 Results</h2>
             <div id="results-container" class="results-container">
                 <div class="loading">
-                    Click "Run" on any scenario above to see results here...
+                    👆 Use the Live Configuration Demo above or click "Run" on any scenario to see results here...
                 </div>
             </div>
         </div>
@@ -386,39 +480,26 @@
 <script>
     const API_BASE = 'http://localhost:8080/api';
     let scenarios = [];
+    let liveDemoResults = [];
 
     // Load scenarios on page load
     window.onload = async function() {
         await loadScenarios();
+        await checkLiveDemoStatus();
     };
 
     async function loadScenarios() {
         try {
-            showMessage('Loading demo scenarios...', 'info');
             const response = await fetch(`${API_BASE}/demo/scenarios`);
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             scenarios = await response.json();
             displayScenarios();
             showMessage(`Loaded ${scenarios.length} demo scenarios successfully!`, 'success');
         } catch (error) {
             console.error('Failed to load scenarios:', error);
-            const errorHtml = `
-                    <div class="error-message">
-                        ❌ Failed to load scenarios.
-                        <br><strong>Error:</strong> ${error.message}
-                        <br><strong>Make sure:</strong>
-                        <ul style="margin-top: 10px; padding-left: 20px;">
-                            <li>The server is running on localhost:8080</li>
-                            <li>The DemoController is properly configured</li>
-                            <li>CORS is enabled (if needed)</li>
-                        </ul>
-                    </div>
-                `;
-            document.getElementById('scenarios-container').innerHTML = errorHtml;
+            document.getElementById('scenarios-container').innerHTML =
+                `<div class="loading">❌ Failed to load scenarios: ${error.message}</div>`;
         }
     }
 
@@ -429,7 +510,10 @@
         const grid = document.createElement('div');
         grid.className = 'scenarios-grid';
 
-        scenarios.forEach(scenario => {
+        // Filter out the live-config-demo from regular scenarios
+        const regularScenarios = scenarios.filter(s => s.id !== 'live-config-demo');
+
+        regularScenarios.forEach(scenario => {
             const card = document.createElement('div');
             card.className = 'scenario-card';
             card.innerHTML = `
@@ -459,6 +543,216 @@
         container.appendChild(grid);
     }
 
+    // Live Configuration Demo Functions
+    async function setupLiveDemo() {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.textContent = '⏳ Setting up...';
+
+        try {
+            const response = await fetch(`${API_BASE}/demo/setup-live-demo`, { method: 'POST' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const result = await response.json();
+
+            document.getElementById('run-live-btn').disabled = false;
+            showLiveDemoMessage(result.message, 'success');
+            await checkLiveDemoStatus();
+
+        } catch (error) {
+            showLiveDemoMessage(`Setup failed: ${error.message}`, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '🚀 1. Setup Initial Config';
+        }
+    }
+
+    async function runLiveDemo() {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '⏳ Running...';
+
+        showLoading();
+
+        try {
+            const response = await fetch(`${API_BASE}/demo/run/live-config-demo`, { method: 'POST' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const result = await response.json();
+            liveDemoResults.push(result);
+            displayLiveDemoResult(result);
+
+            // Enable next buttons based on current state
+            if (liveDemoResults.length === 1) {
+                document.getElementById('modify-btn').disabled = false;
+            }
+
+        } catch (error) {
+            displayError(`Live demo run failed: ${error.message}`);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    }
+
+    async function modifyLiveDemo() {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.textContent = '⏳ Modifying...';
+
+        try {
+            const response = await fetch(`${API_BASE}/demo/modify-live-demo`, { method: 'POST' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const result = await response.json();
+
+            showComparisonView(result);
+            document.getElementById('run-modified-btn').disabled = false;
+            document.getElementById('restore-btn').disabled = false;
+
+        } catch (error) {
+            showLiveDemoMessage(`Modification failed: ${error.message}`, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '⚡ 3. Modify Pipeline';
+        }
+    }
+
+    async function restoreLiveDemo() {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.textContent = '⏳ Restoring...';
+
+        try {
+            const response = await fetch(`${API_BASE}/demo/restore-live-demo`, { method: 'POST' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const result = await response.json();
+            showLiveDemoMessage(result.message, 'success');
+            await checkLiveDemoStatus();
+            hideComparisonView();
+
+        } catch (error) {
+            showLiveDemoMessage(`Restore failed: ${error.message}`, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '🔄 5. Restore Original';
+        }
+    }
+
+    async function checkLiveDemoStatus() {
+        try {
+            const response = await fetch(`${API_BASE}/demo/live-demo-status`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const status = await response.json();
+
+            if (status.exists) {
+                document.getElementById('config-status').style.display = 'block';
+                document.getElementById('config-details').innerHTML = `
+                        <div><strong>Description:</strong> ${status.description}</div>
+                        <div><strong>Steps:</strong> ${status.totalSteps} (${status.steps.map(s => s.name).join(' → ')})</div>
+                        <div><strong>Last Updated:</strong> ${new Date(status.lastUpdated).toLocaleString()}</div>
+                    `;
+
+                if (liveDemoResults.length === 0) {
+                    document.getElementById('run-live-btn').disabled = false;
+                }
+            } else {
+                document.getElementById('config-status').style.display = 'none';
+            }
+
+        } catch (error) {
+            console.error('Failed to check live demo status:', error);
+        }
+    }
+
+    function showComparisonView(modificationResult) {
+        const comparisonArea = document.getElementById('comparison-area');
+        comparisonArea.style.display = 'block';
+
+        const beforeSteps = document.getElementById('before-steps');
+        const afterSteps = document.getElementById('after-steps');
+        const changesSummary = document.getElementById('changes-summary');
+
+        // Show before steps (assume 5 original steps)
+        beforeSteps.innerHTML = `
+                <li class="step-item">acceptanceRules (order: 1)</li>
+                <li class="step-item step-removed">dataStorage (order: 2) ❌</li>
+                <li class="step-item step-removed">exclusionRules (order: 3) ❌</li>
+                <li class="step-item step-modified">scheduler (order: 4) ⚡</li>
+                <li class="step-item">communicationProvider (order: 5)</li>
+            `;
+
+        // Show after steps
+        afterSteps.innerHTML = `
+                <li class="step-item">acceptanceRules (order: 1)</li>
+                <li class="step-item step-modified">scheduler (order: 2) ⚡ conditional</li>
+                <li class="step-item">communicationProvider (order: 3)</li>
+            `;
+
+        // Show changes summary
+        changesSummary.innerHTML = `
+                <div style="margin-top: 15px;">
+                    <strong>Changes Made:</strong>
+                    <ul class="changes-list">
+                        ${modificationResult.changes.map(change => `<li>${change}</li>`).join('')}
+                    </ul>
+                    <div style="margin-top: 10px;">
+                        <strong>Performance Impact:</strong> Expected ~40% faster execution
+                    </div>
+                </div>
+            `;
+    }
+
+    function hideComparisonView() {
+        document.getElementById('comparison-area').style.display = 'none';
+    }
+
+    function displayLiveDemoResult(result) {
+        const container = document.getElementById('results-container');
+        const success = result.result.success;
+        const runNumber = liveDemoResults.length;
+        const configType = runNumber === 1 ? 'Original Configuration' :
+            runNumber === 2 ? 'Modified Configuration' : `Run #${runNumber}`;
+
+        const existingResults = container.innerHTML.includes('result-item') ? container.innerHTML : '';
+
+        container.innerHTML = existingResults + `
+                <div class="result-item ${success ? 'success' : 'failed'}">
+                    <div class="result-header">
+                        <div class="result-title">🔄 Live Demo - ${configType}</div>
+                        <div class="result-status ${success ? 'success' : 'failed'}">
+                            ${success ? '✅ SUCCESS' : '❌ FAILED'}
+                        </div>
+                    </div>
+                    <div class="result-details">
+                        <strong>Run #:</strong> ${runNumber}<br>
+                        <strong>Duration:</strong> ${result.actualDuration}<br>
+                        <strong>Steps Executed:</strong> ${result.executedSteps.length > 0 ? result.executedSteps.join(' → ') : 'None'}<br>
+                        <strong>Total Steps:</strong> ${result.executedSteps.length}<br>
+                        <strong>Configuration:</strong> ${configType}<br>
+                        <strong>Message:</strong> ${result.result.message}
+                        ${runNumber === 2 && liveDemoResults.length === 2 ? `
+                        <br><br><strong>Performance Comparison:</strong>
+                        <br>• Original: ${liveDemoResults[0].actualDuration} (${liveDemoResults[0].executedSteps.length} steps)
+                        <br>• Modified: ${liveDemoResults[1].actualDuration} (${liveDemoResults[1].executedSteps.length} steps)
+                        <br>• Improvement: ${((parseInt(liveDemoResults[0].actualDuration) - parseInt(liveDemoResults[1].actualDuration)) / parseInt(liveDemoResults[0].actualDuration) * 100).toFixed(1)}% faster
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+    }
+
+    function showLiveDemoMessage(message, type) {
+        const statusDiv = document.getElementById('config-status');
+        const className = type === 'success' ? 'success' : 'error';
+        statusDiv.innerHTML = `<div style="color: ${type === 'success' ? '#4caf50' : '#f44336'};">${message}</div>`;
+        statusDiv.style.display = 'block';
+    }
+
+    // Regular scenario functions
     async function runScenario(scenarioId, buttonElement) {
         const originalText = buttonElement.textContent;
         buttonElement.disabled = true;
@@ -467,18 +761,12 @@
         showLoading();
 
         try {
-            const response = await fetch(`${API_BASE}/demo/run/${scenarioId}`, {
-                method: 'POST'
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
+            const response = await fetch(`${API_BASE}/demo/run/${scenarioId}`, { method: 'POST' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const result = await response.json();
             displayResult(result);
         } catch (error) {
-            console.error('Scenario execution failed:', error);
             displayError(`Failed to run scenario: ${error.message}`);
         } finally {
             buttonElement.disabled = false;
@@ -495,46 +783,13 @@
         showLoading();
 
         try {
-            const response = await fetch(`${API_BASE}/demo/batch-demo`, {
-                method: 'POST'
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
+            const response = await fetch(`${API_BASE}/demo/batch-demo`, { method: 'POST' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const result = await response.json();
             displayBatchResult(result);
         } catch (error) {
-            console.error('Batch demo failed:', error);
             displayError(`Batch demo failed: ${error.message}`);
-        } finally {
-            btn.disabled = false;
-            btn.textContent = originalText;
-        }
-    }
-
-    async function runPerformanceTest() {
-        const btn = event.target;
-        const originalText = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = '⏳ Running Performance Test...';
-
-        showLoading();
-
-        try {
-            // Note: This endpoint might not exist yet, it's from the original demo controller
-            const response = await fetch(`${API_BASE}/demo/performance-comparison`);
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const result = await response.json();
-            displayPerformanceResult(result);
-        } catch (error) {
-            console.error('Performance test failed:', error);
-            displayError(`Performance test failed: ${error.message}. This endpoint might not be implemented yet.`);
         } finally {
             btn.disabled = false;
             btn.textContent = originalText;
@@ -544,9 +799,11 @@
     function clearResults() {
         document.getElementById('results-container').innerHTML = `
                 <div class="loading">
-                    Click "Run" on any scenario above to see results here...
+                    👆 Use the Live Configuration Demo above or click "Run" on any scenario to see results here...
                 </div>
             `;
+        liveDemoResults = [];
+        hideComparisonView();
     }
 
     function showLoading() {
@@ -559,13 +816,9 @@
     }
 
     function showMessage(message, type) {
-        const className = type === 'success' ? 'success-message' :
-            type === 'error' ? 'error-message' : 'loading';
-
+        const className = type === 'success' ? 'success-message' : 'error-message';
         document.getElementById('results-container').innerHTML = `
-                <div class="${className}">
-                    ${message}
-                </div>
+                <div class="${className}">${message}</div>
             `;
     }
 
@@ -586,8 +839,6 @@
                         <strong>Steps Executed:</strong> ${result.executedSteps.length > 0 ? result.executedSteps.join(' → ') : 'None'}<br>
                         <strong>Worker ID:</strong> ${result.request.workerId}<br>
                         <strong>Use Case:</strong> ${result.request.useCase}<br>
-                        <strong>Priority:</strong> ${result.request.priority}<br>
-                        <strong>Communication Type:</strong> ${result.request.communicationType}<br>
                         <strong>Message:</strong> ${result.result.message}<br>
                         <strong>Final Status:</strong> ${result.request.status}
                     </div>
@@ -609,8 +860,7 @@
                     <div class="result-details">
                         <strong>Total Duration:</strong> ${batchResult.totalDuration}<br>
                         <strong>Successful:</strong> ${batchResult.successfulScenarios}<br>
-                        <strong>Failed:</strong> ${batchResult.failedScenarios}<br>
-                        <strong>Scenarios Run:</strong> ${batchResult.results.length}
+                        <strong>Failed:</strong> ${batchResult.failedScenarios}
                     </div>
                 </div>
             `;
@@ -627,48 +877,12 @@
                         </div>
                         <div class="result-details">
                             <strong>Duration:</strong> ${result.actualDuration} |
-                            <strong>Steps:</strong> ${result.executedSteps.length > 0 ? result.executedSteps.join(' → ') : 'None'}
+                            <strong>Steps:</strong> ${result.executedSteps.join(' → ')}
                         </div>
                     </div>
                 `;
         });
 
-        container.innerHTML = html;
-    }
-
-    function displayPerformanceResult(perfResult) {
-        const container = document.getElementById('results-container');
-
-        let html = `
-                <div class="result-item success">
-                    <div class="result-header">
-                        <div class="result-title">⚡ Performance Comparison</div>
-                        <div class="result-status success">COMPLETED</div>
-                    </div>
-                    <div class="result-details">
-                        Performance measurements across different pipeline configurations
-                    </div>
-                </div>
-                <div class="performance-chart">
-                    <h3>Average Response Times</h3>
-            `;
-
-        const maxTime = Math.max(...Object.values(perfResult.measurements).map(stats => stats.average));
-
-        Object.entries(perfResult.measurements).forEach(([scenario, stats]) => {
-            const percentage = (stats.average / maxTime) * 100;
-            html += `
-                    <div class="chart-bar">
-                        <div class="chart-label">${scenario}</div>
-                        <div class="chart-value">
-                            <div class="chart-fill" style="width: ${percentage}%"></div>
-                            <div class="chart-text">${stats.average.toFixed(1)}ms</div>
-                        </div>
-                    </div>
-                `;
-        });
-
-        html += '</div>';
         container.innerHTML = html;
     }
 
@@ -679,9 +893,7 @@
                         <div class="result-title">❌ Error</div>
                         <div class="result-status failed">FAILED</div>
                     </div>
-                    <div class="result-details">
-                        ${message}
-                    </div>
+                    <div class="result-details">${message}</div>
                 </div>
             `;
     }
